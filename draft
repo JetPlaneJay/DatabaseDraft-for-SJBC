@@ -1,0 +1,699 @@
+
+
+Object
+Constraints
+Attribute
+Type/Size
+Nullable
+Notes
+Persons
+PrimaryKey,
+PID
+Integer
+No
+Sitebased identification of each volunteer
+UNIQUE
+
+UNIQUE
+First_Name
+Last_Name
+VARCHAR(25)
+
+VARCHAR(25)
+Yes
+
+Yes
+First name of person
+Last name of person
+ 
+Phone_Number
+VARCHAR(15)
+yes
+Phone number of person
+ 
+Email
+VARCHAR(50)
+yes
+Email of person
+Volunteer_Assignment
+PrimaryKey
+PerAssignID
+INT
+No
+Simple number to identify the assignment of a person 
+ForeignKey
+PID
+INT
+No
+Sitebased identification of each volunteer
+ForeignKey
+AssignmentID
+INT
+No
+Assignment ID number 
+UNIQUE
+Sign-in_Date
+DATE
+No
+Record of sign-in
+
+
+Volunteer_Role
+PrimaryKey
+AssignmentID
+INT
+No
+Author ID
+
+
+Job
+INT
+No
+Site ID
+ 
+Description
+VARCHAR(255)
+No
+Description of job
+Volunteer_Tasks
+PrimaryKey
+TaskID
+INT
+No
+Number identifier of the task
+
+
+Task_Name
+VARCHAR(65)
+No
+Name of specific tasks
+ 
+Task_Description
+VARCHAR(500)
+No
+Description of tasks
+Donations
+PrimaryKey
+DonationID
+INT
+No
+Number Identifier for donations
+ForeignKey
+DonationType
+VARCHAR(65)
+No
+Explanation of donation
+ForeignKey
+SaleID
+INT
+No
+Number identifier for a sale
+ 
+Date
+SMALLDATETIME
+No
+Date of order
+
+
+ForeignKey
+PID
+INT
+No
+Number Identifier of person in shop
+
+
+
+
+Sold_Y/N
+VARCHAR(3)
+No
+Explains if item is in shop
+Donation_Type
+Primary
+DonationType
+VARCHAR(255)
+No
+Names of donations
+ForeignKey
+DonationID
+INT
+No
+Donation Identifier
+
+
+
+
+DonationDescription
+VARCHAR(500)
+Yes
+Description of the donation
+Sales
+Primary Key
+SaleID
+INT
+No
+Sale identifier
+ForeignKey
+DonationID
+INT
+No
+Id of donation associated with sale
+
+
+
+
+Table 2. Indexes
+Target A
+Target B
+Name
+Notes
+Donations
+Sales
+Donations_Sales_Index
+Quickly see what has been donated and if the item has been sold
+Volunteer_Assignment
+Assignment_Duties
+VolunterAssignment_Duties
+Show when a person is assigned and if the person made it to their shift
+
+
+
+
+____________________________________________________________________________
+
+
+
+
+
+San Jose Bike Clinic Database Design
+OBJECTIVE 2
+
+
+USE master;
+GO
+
+IF  DB_ID('SanJoseBikeClinic') IS NOT NULL
+DROP DATABASE SanJoseBikeClinic;
+GO
+
+CREATE DATABASE SanJoseBikeClinic;
+GO
+
+USE SanJoseBikeClinic;
+
+CREATE TABLE Persons (
+	PID		INT	PRIMARY KEY	IDENTITY,
+	First_Name	VARCHAR(65) 	NOT NULL,
+	Last_Name	VARCHAR(65)	DEFAULT NULL,
+	Phone_Number	VARCHAR(15)	NOT NULL	UNIQUE,
+	Email		VARCHAR(65)	NOT NULL	UNIQUE
+);
+
+CREATE TABLE PersonsArchive (
+	PID		INT	PRIMARY KEY	IDENTITY,
+	First_Name	VARCHAR(65) 	NOT NULL,
+	Last_Name	VARCHAR(65)	DEFAULT NULL,
+	Phone_Number	VARCHAR(15)	NOT NULL	UNIQUE,
+	Email		VARCHAR(65)	NOT NULL	UNIQUE
+);
+
+CREATE TABLE Volunteer_Assignment (
+	PerAssignID		INT	PRIMARY KEY	IDENTITY,
+	PID		INT 	REFERENCES Persons (PID),	
+	AssignmentID	VARCHAR(50)	NOT NULL	,	
+	SignIn_Date	DATETIME	DEFAULT NULL
+);
+
+CREATE TABLE Volunteer_Role (
+	AssignmentID	INT	PRIMARY KEY	IDENTITY,
+	Job_Title 	VARCHAR(65)	NOT NULL	UNIQUE,
+	Job_Description		VARCHAR(900)	NOT NULL
+);
+CREATE TABLE Volunteer_Tasks (
+	TaskID		INT	PRIMARY KEY	IDENTITY,
+	Task_Name	VARCHAR(65)	NOT NULL	UNIQUE,
+	Task_Description	TEXT	NOT NULL
+);
+
+CREATE TABLE Assignment_Duties (
+	Assignment_DutiesID INT PRIMARY KEY IDENTITY,
+	TaskID INT  REFERENCES Volunteer_Tasks(TaskID),
+	PerAssignID		INT		REFERENCES Volunteer_Assignment(PerAssignID),
+	StartTime_Date	DATETIME	DEFAULT NULL,
+	EndTime_Date	DATETIME	DEFAULT NULL,
+);
+
+
+
+CREATE TABLE Donations (
+	DonationID	INT 	PRIMARY KEY 	IDENTITY,
+	PID 	INT  	REFERENCES Persons(PID),
+	
+);
+CREATE TABLE Donation_Types (
+	TypeID	INT		PRIMARY KEY		IDENTITY,
+	Donation_Type 	VARCHAR(255),
+	DonationID	INT  	REFERENCES Donations(DonationID),
+	Donation_Description	TEXT 	NOT NULL,
+	Donation_Date	DATE	NULL
+);
+
+CREATE TABLE Sales (
+	SaleID	INT	PRIMARY KEY 	IDENTITY,
+	DonationID	INT	REFERENCES Donations(DonationID),
+	Donation_Amount MONEY	NULL,
+	Money_Date	DATETIME	NULL,
+	Sale_Amount  MONEY	NULL,
+	Member_Discount	MONEY NULL
+);
+
+CREATE TABLE SalesArchive (
+	SaleID	INT	PRIMARY KEY 	IDENTITY,
+	DonationID	INT	REFERENCES Donations(DonationID),
+	Donation_Amount MONEY	NULL,
+	Money_Date	DATETIME	NULL,
+	Sale_Amount  MONEY	NULL,
+	Member_Discount	MONEY NULL
+);
+
+CREATE INDEX Name_Email
+ON Persons (First_Name, Last_Name, Email);
+CREATE INDEX Job_Explanations
+ON Volunteer_Role (Job_Title, Job_Description);
+
+
+
+SET IDENTITY_INSERT Sales OFF;
+
+
+
+
+SET IDENTITY_INSERT Persons ON;
+INSERT INTO Persons (PID, First_Name, Last_Name, Phone_Number, Email) VALUES
+(1, 'Jacob', 'Tabares', '123-456-7890', 'JacobTabares@OIT.EDU'),
+(2, 'Kai', 'Wolf', '111-111-1111', 'kai@gmail.com'),
+(3, 'Sunshine', 'Orange', '222-222-2222', 'sunny@gmail.com'),
+(4, 'Shadow','Black', '333-333-3333', 'shadow@gmail.com'),
+(5, 'Lilly', 'Tulip', '444-444-4444', 'lilly@gmail.com');
+SET IDENTITY_INSERT Persons OFF;
+
+
+SET IDENTITY_INSERT Volunteer_Assignment ON;
+INSERT INTO Volunteer_Assignment (PerAssignID, PID, AssignmentID, SignIN_Date) VALUES
+(11, 1, 1, '2011-10-30 09:32:40'),
+(22, 2, 2, '2011-10-30 09:32:42'),
+(33, 3, 3, '2011-10-30 09:32:43'),
+(44, 4, 4, '2011-10-30 09:32:44'),
+(55, 5, 4, '2011-10-30 09:32:45');
+SET IDENTITY_INSERT Volunteer_Assignment OFF;
+
+SET IDENTITY_INSERT Volunteer_Role ON;
+INSERT INTO Volunteer_Role (AssignmentID, Job_Title, Job_Description) VALUES
+(1, 'Steering Committee', 'SJBC Volunteer with management abilities'),
+(2, 'Volunteer', 'Helps in the shop when available'),
+(3, 'Intern', 'Works in a learning capacity in the effort to help the shop create marketing ads and/or recruit volunteers'),
+(4, 'Donor','When someone donates and leaves their information'),
+(5,'Shift Lead', 'Volunteer with experience and seniority');
+SET IDENTITY_INSERT Volunteer_Role OFF;
+
+
+
+SET IDENTITY_INSERT Volunteer_Tasks ON
+INSERT INTO Volunteer_Tasks (TaskID, Task_Name, Task_Description) VALUES
+(1, 'Opening', '1) Perform donation count. 2) switch sign to open	3)Sweep if needed'),
+(2, 'Donations', 'Enter Data for current donations and inventory'),
+(3, 'Sales', 'Enter data related to sales'),
+(4, 'Closing', '1) Register count. 2)Sweep.	3) lock up shop'),
+(5, 'Last check', 'Double check data entries');
+SET IDENTITY_INSERT Volunteer_Tasks OFF
+
+
+
+
+SET IDENTITY_INSERT Assignment_Duties ON;
+INSERT INTO Assignment_Duties (Assignment_DutiesID, TaskID, PerAssignID, StartTime_Date, EndTime_Date) VALUES
+(1, 1, 11, '2020-12-28 05:30:00', '2020-12-28 09:30:00'),
+(2, 2, 22, '2020-12-29 05:30:00', '2020-12-29 09:30:00'),
+(3, 3, 33, '2020-12-30 05:30:00', '2020-12-30 09:30:00'),
+(4, 4, 44, '2021-01-03 05:30:00', '2020-01-03 09:30:00'),
+(5, 5,55, '2021-01-04 05:30:00', '2020-01-04 09:30:00');
+SET IDENTITY_INSERT Assignment_Duties OFF;
+
+
+SET IDENTITY_INSERT Donations ON;
+INSERT INTO Donations (DonationID, PID) VALUES
+(1, 1),
+(2, 2),
+(3, 5),
+(4, 5),
+(5, 1);
+SET IDENTITY_INSERT Donations OFF;
+
+
+SET IDENTITY_INSERT Donation_Types ON;
+INSERT INTO Donation_Types (TypeID, Donation_Type, DonationID, Donation_Description, Donation_Date) VALUES
+(1, '$100', 1, 'Person donated $100 on web page', '2021-01-01 05:30:00'),
+(2, 'Helmet', 2, 'Green helmet', '2020-01-01 05:30:00'),
+(3, 'Bicycle', 3, 'Specialized bicycle', '2020-01-02 05:30:00'),
+(4, '$20', 4, 'Tip jar', '2020-01-04 05:30:00'),
+(5, 'Helmet', 5, 'Red Helmet', '2020-01-04 05:30:00');
+SET IDENTITY_INSERT Donation_Types OFF;
+
+SET IDENTITY_INSERT Sales ON;
+INSERT INTO sales (SaleID, DonationID, Donation_Amount, Money_Date, Sale_Amount, Member_Discount) VALUES
+(1, 1, '', '2020-01-04 05:30:00', '100.00', '0.20'),
+(2, 1, '', '2020-01-04 05:30:00', '10.00', ''),
+(3, 2, '', '2020-01-04 05:35:00', '20.00', '0.20'),
+(4, 2, '25.00', '2020-02-01 05:35:00','', '0.20'),
+(5, 2, '10.00', '2020-03-04 05:35:00', '30.00', ''),
+(6, 2, '', '2020-03-04 05:35:00', '5.00', '0.20');
+SET IDENTITY_INSERT Sales OFF;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROCEDURES
+OBJECTIVE 3
+
+
+CREATE PROC spInsertDonationss
+	@Donation_Type VARCHAR (255),
+	@Donation_Description TEXT
+
+AS
+BEGIN TRY
+	INSERT INTO Donation_Types(Donation_Type, Donation_Description)
+	VALUES (@Donation_Type, @Donation_Description);
+	PRINT 'Woohoo! Record inserted.'
+END TRY
+BEGIN CATCH
+	PRINT 'FAILURE: Good Try but the record was not Updated.';
+	PRINT 'Error ' +CONVERT(varchar, ERROR_NUMBER(), 1) + ': ' + ERROR_MESSAGE();
+
+END CATCH
+
+
+EXEC spInsertDonationss 'Bike','Red';
+GO
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE PROC UpdatePersonsS
+
+AS
+BEGIN TRY
+	SET NOCOUNT ON;
+	UPDATE [Persons] SET [First_Name] = N'New',
+		[Last_Name] = N'Person',
+		[Email] = N'newperson@gmail.com'
+	Where [PID] = 1
+	PRINT 'SUCCESS: Record was updated! Woohoo'
+END TRY
+BEGIN CATCH
+	PRINT 'FAILURE: Record was not Updated.';
+	PRINT 'Error ' +CONVERT(varchar, ERROR_NUMBER(), 1) + ': ' + ERROR_MESSAGE();
+
+END CATCH
+
+
+EXEC[dbo].[UpdatePersonsS]
+GO
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE PROCEDURE spDeleteInDonation_Types
+AS
+BEGIN TRY
+DELETE Donation_Types
+	WHERE Donation_Date <= Convert(datetime, '2020-01-03')
+	PRINT 'NICE! The record was deleted'
+END TRY
+BEGIN CATCH
+	PRINT 'FAIL. Record was not deleted, try again'
+PRINT 'Error ' +CONVERT(varchar, ERROR_NUMBER(), 1) + ': ' + ERROR_MESSAGE();
+END CATCH
+GO
+
+EXEC spDeleteInDonation_Types
+GO
+
+
+SELECT *
+FROM Donation_Types
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+CREATE PROC spUpdateSales
+	@SaleID		INT,
+	@Member_Discount	MONEY
+
+AS
+IF @Member_Discount < 0
+	THROW 50001, 'Please input a positive number in the Donation_Amount column', 1;
+Update Sales
+	SET Member_Discount = @Member_Discount
+	WHERE SaleID = @SaleID;
+
+
+
+exec spUpdateSales 1, .25;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FUNCTIONS
+
+
+CREATE FUNCTION fnIncomeTotal
+(
+@SaleID INT
+)
+RETURNS MONEY
+BEGIN
+	DECLARE @IncomeTotal MONEY
+	
+	SELECT @IncomeTotal = sum((Sale_Amount) - (Sale_Amount * Member_Discount)) + sum(Donation_Amount)
+	FROM Sales;
+
+	RETURN @IncomeTotal;
+END
+
+SELECT SaleID, Donation_Amount, Sale_Amount, Member_Discount, dbo.fnIncomeTotal(SaleID) AS TotalIncome
+FROM Sales
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE FUNCTION fnJanuary2020Sales
+(
+@SaleID INT
+)
+RETURNS MONEY
+BEGIN 
+	DECLARE @January2020Sales MONEY
+	
+	SELECT @January2020Sales = SUM(Sale_Amount)
+	FROM Sales
+	WHERE Sale_Date >= Convert(datetime, '2020-01-01') AND Sale_Date <= Convert(datetime, '2020-01-31');
+
+	Return @January2020Sales;
+End
+
+
+SELECT SaleID, Sale_Date, Sale_Amount, dbo.fnJanuary2020Sales(SaleID) AS JanuarySales
+FROM Sales
+WHERE Sale_Date >= Convert(datetime, '2020-01-01') AND Sale_Date <= Convert(datetime, '2020-01-31');
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+TRIGGERS
+
+CREATE TRIGGER Deleted_Volunteer_Info
+	ON Persons
+	AFTER DELETE
+AS
+
+INSERT INTO PersonsArchive
+	(PID, First_Name, Last_Name, Phone_Number, Email)
+	SELECT PID, First_Name, Last_Name, Phone_Number, Email
+	FROM Deleted
+
+
+
+ALTER TABLE [SanJoseBikeClinic].[dbo].[Volunteer_Assignment] NOCHECK CONSTRAINT [FK__Volunteer_A__PID__2E1BDC42]
+	ALTER TABLE [SanJoseBikeClinic].[dbo].[Donations] NOCHECK CONSTRAINT [FK__Donations__PID__3D5E1FD2]
+
+
+SET IDENTITY_INSERT PersonsArchive ON;
+	Delete From Persons
+	Where PID = 1
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+CREATE TRIGGER Sales_Update
+	ON Persons
+	AFTER INSERT, UPDATE
+
+AS
+	UPDATE Persons
+	SET First_Name = UPPER(First_Name),
+	Last_Name = UPPER(Last_Name);
+	
+
+SET IDENTITY_INSERT Persons ON;
+INSERT INTO Persons (PID, First_Name, Last_Name, Phone_Number, Email) VALUES
+(6, 'lou', 'sdfsds', '123-456-7790', 'lllllll@gmail.com');
+select * from Persons
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+CREATE TRIGGER dbo.[SanJoseBikeClinic]
+   ON  dbo.[Sales]
+  AFTER Update
+AS 
+BEGIN
+
+    SET NOCOUNT ON;
+INSERT INTO dbo.SalesArchive
+
+   SELECT *
+   FROM updated;
+
+END
+
+
+
+
